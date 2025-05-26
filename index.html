@@ -1,0 +1,2150 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Правила Сервера UARP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #e5e7eb;
+            line-height: 1.6;
+        }
+        
+        /* Sidebar transitions */
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+        }
+        .sidebar {
+            transition: transform 0.3s ease-in-out;
+        }
+        .sidebar-open .main-content {
+            margin-left: 288px; 
+        }
+        .sidebar-open .sidebar {
+            transform: translateX(0);
+        }
+        .sidebar-closed .main-content {
+            margin-left: 0;
+        }
+        .sidebar-closed .sidebar {
+            transform: translateX(-100%);
+        }
+        
+        @media (min-width: 768px) { 
+            .sidebar-open .main-content {
+                margin-left: 288px; 
+            }
+            .sidebar {
+                transform: translateX(0);
+            }
+            .sidebar-closed .main-content {
+                margin-left: 0;
+            }
+            .sidebar-closed .sidebar {
+                transform: translateX(0); 
+            }
+        }
+
+        /* Typography improvements */
+        .prose {
+            max-width: 80ch;
+            font-size: 1rem;
+            line-height: 1.75;
+        }
+        
+        .prose h2 {
+            color: #c084fc; 
+            border-bottom: 2px solid #6b21a8; 
+            padding-bottom: 0.5rem;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            font-size: 2rem; 
+            font-weight: 700;
+            text-align: center; 
+            scroll-margin-top: 6rem; 
+        }
+        
+        .prose h3 {
+            color: #a5b4fc; 
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem; 
+            font-weight: 600;
+            border-left: 4px solid #4f46e5; 
+            padding-left: 1rem;
+        }
+        
+        .prose p {
+            margin-bottom: 1.25rem;
+        }
+        
+        .prose strong {
+            font-weight: 600;
+            color: #f3f4f6; 
+        }
+        
+        .prose ul, .prose ol {
+            margin-bottom: 1.25rem;
+            padding-left: 1.5rem;
+        }
+        
+        .prose li {
+            margin-bottom: 0.5rem;
+            position: relative; 
+        }
+        
+        .prose ul li::before { 
+            content: "•";
+            color: #a5b4fc; 
+            font-weight: bold;
+            display: inline-block; 
+            width: 1em;
+            margin-left: -1em;
+        }
+        
+        /* Punishment styling */
+        .punishment {
+            background-color: #881337; 
+            color: #fecdd3; 
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 0.25rem 0;
+            font-size: 0.875rem; 
+            border-left: 3px solid #f43f5e; 
+        }
+        
+        /* Highlighted text for server description */
+        .highlighted-text {
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.25rem; 
+            background: linear-gradient(to right, #3b82f6, #facc15); 
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: block; 
+            padding: 0.5rem 0;
+            margin: 1.5rem 0; 
+            border-radius: 0.5rem; 
+            background-color: rgba(59, 130, 246, 0.1); 
+            border: 1px solid rgba(59, 130, 246, 0.2); 
+        }
+        
+        /* Rule numbering */
+        .rule-number {
+            display: inline-block;
+            min-width: 3.5rem; 
+            font-weight: 700;
+            color: #a5b4fc; 
+        }
+        
+        /* Sidebar improvements */
+        .sidebar {
+            background-color: #1f2937; 
+            border-right: 1px solid #374151; 
+        }
+        
+        .nav-link {
+            transition: all 0.2s ease;
+            border-radius: 0.375rem; 
+            padding: 0.5rem 1rem; 
+            margin: 0.25rem 0; 
+            display: block;
+            color: #d1d5db; 
+            font-size: 0.95rem; 
+        }
+        
+        .nav-link:hover {
+            background-color: #4f46e5; 
+            color: white;
+        }
+        
+        .nav-link.active {
+            background-color: #ef4444; 
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* Images */
+        .prose-img {
+            border: 2px solid #4b5563; 
+            border-radius: 0.5rem; 
+            margin: 1rem auto; 
+            max-width: 100%;
+            height: auto;
+            display: block;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+        }
+        
+        section {
+            padding: 1.5rem 0;
+            border-bottom: 1px solid #374151; 
+        }
+        
+        section:last-child {
+            border-bottom: none;
+        }
+        
+        .qa-item {
+            margin-bottom: 1.5rem;
+            background: #1f2937; 
+            padding: 1rem;
+            border-radius: 0.5rem; 
+            border-left: 4px solid #4f46e5; 
+        }
+        
+        .qa-item strong { 
+            color: #a5b4fc; 
+        }
+        
+        /* Links */
+        a {
+            color: #93c5fd; 
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Scrollbar styling (Webkit browsers) */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1f2937; 
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #4f46e5; 
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ef4444; 
+        }
+        
+        .title-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-image: linear-gradient(to right, #3b82f6, #8b5cf6, #ec4899); 
+        }
+
+        .mobile-header {
+            background-color: #1f2937; 
+            border-bottom: 1px solid #374151; 
+        }
+
+        .rule-item {
+            margin-bottom: 1.5rem; 
+            padding-left: 1.5rem; 
+            border-left: 2px solid #374151; 
+            transition: border-left-color 0.3s ease; 
+        }
+
+        .rule-item:hover {
+            border-left-color: #4f46e5; 
+        }
+        
+        .section-spacing {
+            margin-top: 3rem; 
+        }
+		
+		.image-container {
+			text-align: center;
+			margin-top: 10px;
+			margin-bottom: 20px;
+		}
+
+		.centered-image {
+			max-width: 100%;
+			height: auto;
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+			border-radius: 8px;
+			box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+		}		
+		
+
+    </style>
+</head>
+<body class="sidebar-open">
+
+    <aside id="sidebar" class="sidebar fixed top-0 left-0 z-40 w-72 h-screen bg-gray-800 p-4 overflow-y-auto">
+        <h1 class="text-3xl font-bold mb-6 text-center text-purple-400">UARP Rules</h1>
+        <nav>
+            <ul class="space-y-1">				
+                <li><a href="#section_1" class="nav-link block py-2 px-3 rounded-md text-gray-200">1. Загальні правила</a></li>
+                <li><a href="#section_2" class="nav-link block py-2 px-3 rounded-md text-gray-200">2. Правила Roleplay</a></li>
+                <li><a href="#section_3" class="nav-link block py-2 px-3 rounded-md text-gray-200">3. Класи зброї</a></li>
+                <li><a href="#section_4" class="nav-link block py-2 px-3 rounded-md text-gray-200">4. Правила будівництва</a></li>
+                <li><a href="#section_5" class="nav-link block py-2 px-3 rounded-md text-gray-200">5. Правила чату</a></li>
+                <li><a href="#section_6" class="nav-link block py-2 px-3 rounded-md text-gray-200">6. Правила криміналу</a></li>
+                <li><a href="#section_7" class="nav-link block py-2 px-3 rounded-md text-gray-200">7. Правила держ. службовців</a></li>
+                <li><a href="#section_8" class="nav-link block py-2 px-3 rounded-md text-gray-200">8. Правила військових</a></li>
+                <li><a href="#section_9" class="nav-link block py-2 px-3 rounded-md text-gray-200">9. Правила професій</a></li>
+                <li><a href="#section_10" class="nav-link block py-2 px-3 rounded-md text-gray-200">10. Правила приватних професій</a></li>
+                <li><a href="#section_11" class="nav-link block py-2 px-3 rounded-md text-gray-200">11. Правила адміністрації</a></li>
+                <li><a href="#section_12" class="nav-link block py-2 px-3 rounded-md text-gray-200">12. Питання – Відповідь</a></li>
+                <li><a href="#section_13" class="nav-link block py-2 px-3 rounded-md text-gray-200">Корисні посилання</a></li>
+            </ul>
+        </nav>
+        <p class="text-xs text-gray-500 mt-8 text-center">Максу від r3dd1L</p>
+    </aside>
+
+    <div id="mainContent" class="main-content md:ml-72 p-4 md:p-8">
+        <header class="md:hidden fixed top-0 left-0 right-0 bg-gray-800 p-4 z-50 flex justify-between items-center mobile-header">
+            <h1 class="text-xl font-bold text-purple-400">UARP | Rules</h1>
+            <button id="sidebarToggle" class="text-gray-200 hover:text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </header>
+        <div class="md:hidden pt-16"></div> 
+        
+        <article class="prose prose-invert max-w-none">
+            <section id="section_0" class="scroll-mt-20">
+                <div class="text-center py-10">
+                    <h1 class="text-5xl font-extrabold leading-tight">
+                        <span class="title-gradient">
+                            UKRAINE ROLEPLAY
+                        </span>
+                        <br>
+                        <span class="text-yellow-400">RULES</span>
+                    </h1>
+                </div>
+            </section>
+
+            <section id="section_1" class="scroll-mt-20">
+                <h2>1. Загальні правила</h2>
+                <p class="highlighted-text">Сервер базується на Lite RP форматі з певним ухилом до Medium RP</p>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">0.0</strong> Вища адміністрація залишає за собою право позбавити вас донатних привілеїв на власний розсуд.</p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">0.1</strong> Перевірку на використання читів, а також надсилання посилань і програм для перевірки можуть здійснювати виключно Старші Адміністратори та вище.</p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.0</strong> Правила можуть змінюватися без оповіщення в діскорд, тож радимо іноді заглядати в правила і стежити за змінами в них.</p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.1</strong> Незнання правил не звільняє від відповідальності. Якщо ви не впевнені, чи не суперечать ваші дії встановленим правилам, зверніться за роз’ясненням до старшої адміністрації.</p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.2</strong> Граючи на нашому проекті, Ви автоматично погоджуєтесь з правилами проекту.</p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.3 – BugUse</strong> – Заборонено використовувати, замовчувати та розповідати про баги сервера. <br><span class="punishment">[ BAN 1d - perma ]</span></p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.4</strong> Заборонено навмисно порушувати роботу сервера. (навантаження сервера / DDoS).<br>Також заборонено знижувати FPS гравцям усіма можливими способами. <br><span class="punishment">[ BAN perma ]</span></p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.5</strong> Забороняється видавати себе за набірну адміністрацію проекту або івентологів, а також грати з їхніми ніками або схожими до них.
+					<br>Також заборонено принижувати та в образливій формі висловлюватись про набірну адміністрацію проектів UARP, що наразі працює над скаргами.<br><span class="punishment">[ BAN 2h ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.6</strong> Забороняється здійснювати продаж ігрової валюти або донату іншим гравцям в обмін на будь-які цінності чи послуги поза межами гри. <br><span class="punishment">[ BAN perma ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.7</strong> Забороняється заважати адміністрації проекту. (заважати їм виконувати їхню роботу, спамити, флудити і т.д.).<br>Також будь-які неадекватні дії [ігнор/ухилення від прямих питань адміністратора/імітація AFK] з боку обвинуваченого, кваліфікуються як спроба уникнення покарання, і може розцінюватися як порушення правил, в яких Вас звинувачують. <br><strong>Додаток:</strong> Заборонено кидати скарги за некоректною причиною, викликати адміністратора без причини.<br><strong>Додаток:</strong> У разі порушення правила 1.7 у Discord, покарання може бути застосоване і на сервері, за умови підтвердженого зв’язку з відповідною скаргою.<br><strong>Наприклад:</strong> “ОПОВОВА”; “я поїв”; “адмін тп” і т.д.<br><span class="punishment">[ Усне попердження - Ban 2h ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.8</strong> У виняткових ситуаціях вища адміністрація залишає за собою право виносити вердикт, виходячи з ситуації, не спираючись на основні правила.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.9 – MultiAccount</strong> – Заборонено грати на інших аккаунтах окрім основного та заборонено обходити блокування проекту.<br>(sand box, family sharing тощо) <br><span class="punishment">[ Гра на сторонніх аккаунтах - за перше порушення BAN 14d, за друге BAN 30d, за третє BAN perma | Обхід блокування через сторонній аккаунт - BAN perma ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.10</strong> Вища адміністрація має право порушувати правила сервера для перевірки його продуктивності.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.11 – Рецидив</strong> – порушення 4 та більше правил серверу протягом 20-ти хвилин з моменту порушення першого правила.<br>(до правила Рецидив не входять порушення правил: 1.3, 1.4, 1.6, 1.7, 1.9, 1.12, 1.13, 1.15, 1.16, 1.18, 1.19, 1.20, 1.21, 1.22, 2.12, 2.26, 2.27, 2.28, 2.31, 2.35, 2.37, правила будівництва, правила спілкування, правила адміністрації).<br><span class="punishment">[ BAN 5d ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.12</strong> Заборонено використання стороннього софту для спрощення гри та переваги над гравцями (боти, чити, аддони які надають перевагу над іншими гравцями, прозорі двері, тощо).<br><span class="punishment">[ BAN perma ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.13</strong> Заборонено розповсюджувати рекламу (ютуб, інші сервери тощо).  <br><span class="punishment">[ BAN perma ] </span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.14</strong> Усе RP базується на правилах серверу, і якщо якась дія порушує їх ви будете засуджені за порушення цього правила.</p>
+                </div>
+                 <div class="rule-item">
+                    <p><strong class="rule-number">1.15</strong> Заборонено вводити в оману адміністрацію проекту, якщо це впливає на рішення або розгляд скарги. <br><span class="punishment">[ BAN 2d ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.16</strong> На сервері ви маєте право грати тільки на своєму аккаунті, при втраті доступу до аккаунта сервер не несе відповідальність за ваші речі, також заборонена передача свого аккаунта в чужі руки. <br><span class="punishment">[ BAN perma ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.17 – Non-RP time</strong> – Коли на сервері меньше ніж 15 гравців, правила Fear-RP(2.1), Non-RP(2.2), FreeDMG(2.23), FreeKill(2.24), TeamKill(2.25) не працюють. <br><strong>Додаток:</strong> Дозволено порушувати правило Freekill/TeamKill стосовно одного гравця раз в 5 хвилин.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.18</strong> На сервері обманювати на ігрову валюту вас не може лише бізнесмен з ліцензією.(У НРП-Зоні заборонено обманювати гравців на ігрову валюту).  <br><strong>Додаток:</strong> Порушенням цього правила вважається відмова від передачі ігрової валюти за умовами:  <br>➤ Якщо гравець-обманщик грає за професію “Бізнесмен” та має ліцензію. <br>➤ Якщо обидва гравці знаходяться в НРП-зоні. <br><span class="punishment">[ BAN 5h-3d ]+анулювання ігрового балансу на суму обману.</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.19</strong> На сервері заборонено обманувати гравців на донат. <br><span class="punishment">[ BAN 7d-perma ]+ анулювання донат рахунку.</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.20 – Offline</strong> – Якщо вас не буде на сервері під час видачі покарання, вам видається статус офлайн та додається від 1 до 4 годин бану.  <br><strong>Доповнення:</strong> Якщо у вас були певні проблеми, через які вам потрібно було вийти або у вас були технічні проблеми з грою - у вас є 10 хвилин щоб зайти на сервер.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.21 – Media Violation(MV)</strong> – Заборонено навмисне використання заборонених слів на Twitch під час стріму Media партнерів проекту  <a href="https://telegra.ph/Zaboronenі-slova-na-Twitch-04-30" class="text-blue-400 hover:underline">(посилання на заборонені слова).</a> <br>Подивитися чи йде стрім ви можете натиснувши –&gt; <a href="https://discord.com/channels/1025769467466236014/1192771253451358259" class="text-blue-400 hover:underline">на цей текст.</a>  <br><span class="punishment">[ BAN 2h-3d ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.22 – Targeting</strong> – Заборонено постійно переслідувати/слідкувати за іншим гравцем/адміністратором з метою “задушити” людину по незначним причинам або провокувати іншу людину на порушення.  <br><strong>Додаток:</strong> <br>➤ Також заборонено заважати іншим гравцям отримувати насолоду від гри.  <br>➤ Заборонено брати гравців у заручники з метою змусити їх промовляти фрази на кшталт "Я раб ...", "Я підкоряюсь ...", або інші подібні вирази / виконувати дії під загрозою смерті, які порушують принципи адекватного RP.  <br><strong>Наприклад:</strong> По КД робити замовлення на конкретного гравця, переслідування з метою викрику образливих коментарів у сторону конкретного гравця, блокувати прохід своїм тілом.  <br><strong>Доповнення:</strong> Дозволено блокувати прохід своїм тілом для RP затримання.  <br><span class="punishment">[ BAN 12h ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">1.23</strong> Заборонено використання сторонніх ресурсів, що змінюють стандартний ігровий контент.  <br>До заборонених змін належить: <br>➤ Використання ремоделей на зброю та засоби самооборони, а також рескінів, що містять прозорі або напівпрозорі матеріали.  <br>➤ Зміна моделей та скінів професій.  <br>➤ Зміна звуків пострілу, попадання, перезарядки.  <br>➤ Зміна візуальних ефектів (партиклів) пострілу або попадання.  <br><strong>Доповнення:</strong> Заборонені ремоделі та рескіни які надають перевагу над іншими гравцями.  <br><span class="punishment">[ BAN 1 день / 1 тиждень / 1 місяць / перманентно ] </span></p>
+                </div>
+            </section>
+
+            <section id="section_2" class="scroll-mt-20 section-spacing">
+                <h2>2. Правила Roleplay</h2>
+                
+                <h3>Загальні</h3>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.1 – FearRP (FRP)</strong> – страх за своє життя.  <br>Ви повинні дбати про життя свого персонажа.  Якщо ви під прицілом вам заборонено діставати зброю, тікати або чинити опір.  <br>
+                    <strong>Додаток:</strong> У маньяка Fear RP від 3 людей, у держслужбовців силових структур та військових від 2 людей.  <br>
+                    <strong>Додаток:</strong> Якщо ви встали обличчям до стіни/у підлогу або якщо ви зв’язанні, то на вас діє правило FearRP від 1 людини, навіть якщо до цього воно було розширене.  <br>Якщо вам після цього дозволили обернутися або вас розв’язали і у вас є змога побачити кількість озброєних людей — розширений FearRP повертається до попереднього значення.  <br>Також людина, яка встала обличчям до стіни, має право дивитися по бокам, але не на людину/людей зі зброєю.  <br>
+                    <span class="punishment">[ BAN 15mi-30mi ] </span></p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2 – Non-RP (NRP)</strong> – дії які не можна порівняти з професією вашого персонажа або не можна порівняти з життєвими ситуаціями.  <br>
+                    <strong>Додаток:</strong> <br>
+                    ➤ Заборонена NonRP-розмова в RP-зоні.  <br>
+                    ➤ Заборонено спілкування в голосовий, текстовий чат під час смерті.  <br>
+                    ➤ Заборонено стрибати на/збивати/чиплятися за/брати Gravity Gun’ом дрони без РП причини.  <br>
+                    ➤ Правила, які працюють на людей з викупленим правилом NonRP: Обмеження <br>
+                    <strong>Виключення:</strong> Ситуація де ви можете вести NonRP-розмову 1 на 1 але вас не повинні чути гравці. <br>
+                    <span class="punishment">[ BAN 10mi-20mi ] </span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.3 – NLR</strong> – правило нового життя.  <br>Після смерті ви не пам'ятаєте, хто вас убив та де вас убили.  Ви пам'ятаєте своє ім'я, дім, друзів.  <br>
+                    <strong>Додаток:</strong> <br>
+                    ➤ Заборонено повертатися на місце своєї смерті протягом 5 хвилин та до закінчення РП ситуації (рейд, пограбування тощо). <br>
+                    ➤ Правило NLR під час захоплення кланових точок працює для всіх, в тому числі і для приватних професій у яких це правило вимкнене.  <br>
+                    <strong>Виключення:</strong> Війна.<br>
+                    <span class="punishment">[ BAN 10mi-20mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.4 – Armed RP (ARP)</strong> – заборонено діставати зброю у громадських місцях, грабувати, вбивати, викрадати.<br>
+                    <strong>Виняток:</strong> самозахист, кунай/набір вбивці тільки для польоту, гос. структури, військові, правило 6.6. <br>
+                    <span class="punishment">[ BAN 10mi-20mi ]</span><br>
+                    <strong>Додаток:</strong> Громадські місця зазначені нижче.</p>
+                    <img src="https://thumbs2.imgbox.com/34/2f/IIBPTUVr_t.png" alt="Карта громадських місць" class="prose-img mx-auto"> 
+                    <p>Червоний колір - дозволена кримінальна діяльність.<br>
+                    Зелений колір - заборонена кримінальна діяльність.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.5 – Power Gaming (PG)</strong> – Перебільшення можливостей персонажа.<br>
+                    <strong>Виключення:</strong> Паркурист, Політ на Кунаї/Наборі вбивці/Аанг планер/Grappling hook, під час погоні, Захоплення точки. <br>
+                    <strong>Наприклад:</strong> гравець прийшов поодинці на рейд великої бази або побіг з голими руками на озброєну людину тощо.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.6 – MetaGaming (MG)</strong> – забороняється використовувати інформацію зовнішнього світу для переваги над іншими гравцями.<br>
+                    <strong>Наприклад:</strong> Читати нікнейми гравців, використовувати інформацію з TAB-меню, телефонувати не зная номеру.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.7 – FreeDemote</strong> – Заборонено звільняти гравця з професії без адекватної RP причини.<br>
+                    <strong>Наприклад:</strong> Заборонено звільняти по таким причинам як “Аутист, NonRP(в тому числі правила проекту), Бовдур, неадекват тощо”.<br>
+                    <strong>Додаток:</strong> Державного співробітника може звільнити тільки старший по ієрархії з адекватної РП-причини.<br>
+                    <span class="punishment">[ BAN 15-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.8 – FreeCheck (FC)</strong> – Заборонений обшук на зброю без адекватної РП-причини.<br>
+                    <strong>Додаток:</strong> <br> 
+                    ➤ Ви не можете обшукувати людей посеред вулиці.<br>
+                    ➤ Перед обшуком необхідно поставити людину обличчям до стінки або до землі.<br>
+                    <span class="punishment">[ BAN 10mi-20mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.9 – FreeHandcuff (FHC)</strong> – Забороняється одягати наручники без причини. <br><span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.10 – FreeTaser (FT)</strong> – Заборонено без причини стріляти у людину тайзером.<br>
+                    <span class="punishment">[ BAN 10mi-20mi ]</span></p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.11 – FreeArrest (FA)</strong> – Забороняється затримувати(арештовувати) гравців без РП причини.<br>
+                    <strong>Додаток:</strong> <br>
+                    ➤ Час через який можна арештовувати гравця за непокору (10 секунд).<br>
+                    ➤ Ви не маєте права арештовувати гравців, що щойно відсиділи свій термін. (У випадку порушення арешт дозволено) <br>
+                    <strong>Наприклад:</strong> Вам сказали, що "Вася" вбив "Петю", і ви без доказів вирішили повірити на слово й заарештувати "Васю".<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.12 – MassFreeArest (MFA)</strong> – Безпричинний арешт чотирьох або більше людей. <br><span class="punishment">[ BAN 6d-14d ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.13 – FreeWanted</strong> – Заборонено оголошувати в розшук без особливої на те причини.<br>
+                    <strong>Додаток:</strong> <br>
+                    ➤ При оголошенні вказуйте вірну та зрозумілу причину.<br>
+                    ➤ Заборонено оголошувати в розшук гравця, що вже знаходиться у в’язниці.<br>
+                    ➤ Заборонено оголошувати в розшук гравця після вашої або його смерті.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.14 – FreeWarrant</strong> – Заборонено проводити обшук приміщення без особливої на те причини.<br>
+                    <strong>Додаток:</strong> <br>
+                    ➤ Заборонений обшук приміщення без ордеру.<br>
+                    ➤ Для обшуку вказуйте вірну та зрозумілу причину.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.15 – Non RP Gun (NRPG)</strong> – Використання зброї не призначеної для вашої професії.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.16 – JobAbuse (JA)</strong>– Заборонено змінювати професію для власної вигоди.<br>
+                    <strong>Наприклад:</strong> Змінити професію на Продавця зброї щоб купити зброю та повернутися на минулу професію.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.17 – AdvertAbuse</strong> – Заборонений спам в advert або оголошення Non-RP інформації.<br>
+                    <strong>Додаток:</strong> Ви можете написати лише 3 оголошення за 10 хвилин.<br>
+                    <strong>Виняток:</strong> У радіоведучого немає ліміту оголошень.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.18 – GreenZoneAbuse (GZA)</strong> – Забороняється використання GreenZone в корисних для себе цілях.<br>
+                    <strong>Виняток:</strong> Заборонено заарештовувати людей які знаходилися на території GreenZone під час комендантської години, але якщо вони покинули цю зону під час комендантської години чи займались там кримінальною діяльністю то їх дозволено заарештувати.<br>
+                    <strong>Додаток:</strong> Дозволено заарештовувати та вбивати людей з раціональною рп причиною на території GreenZone.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                    <img src="https://thumbs2.imgbox.com/11/c9/CqZnqPrF_t.png" alt="Green Zone and Spawn Zone" class="prose-img mx-auto">
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.19 – CustomJob (CJ)</strong> – Заборонене використання команди /job для тотальної зміни професії.<br>
+                    <strong>Додаток:</strong> Дозволено доповнювати/змінювати на синоніми, звання, назви банди, бригад, угруповань, мафії тощо.<br>
+                    <span class="punishment">[ BAN 10mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.20 – HostageRule (HR)</strong> – Ви маєте право тримати гравця в полоні не більше ніж 15 хвилин, при цьому з ним повинні проводитися регулярні RP дії.<br>
+                    <strong>Наприклад:</strong> Катування, погрози, смертельні ігри, прояви насилля тощо.<br>
+                    <span class="punishment">[ BAN 10mi-20mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.21 – NicknameAbuse (NA)</strong> – заборонено змінювати нікнейми для уникнення покарання.<br>
+                    <strong>Додаток:</strong> Заборонено багаторазово змінювати псевдонім за короткий час а також повністю копіювати псевдоніми гравців сервера.<br>
+                    Ваш псевдонім має бути читаним, не складатися лише з одних символів/ієрогліфів тощо.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.22 – DoorAbuse (DA)</strong> – забороняється використовувати двері для перешкоди РП процесу.<br>
+                    Відкривати і закривати їх декiлька разiв перед гравцем щоб зупинити його.<br>
+                    <span class="punishment">[ BAN 10mi-20mi ]</span></p>
+                </div>
+
+                <h3>Вбивство/Дамаг</h3>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.23 – FreeDamage (FDMG)</strong> – Заборонено завдання шкоди гравцеві без раціональної РП-причини.<br>
+                    <strong>Додаток: ADR (Accidentally Damage Rule)</strong> – Випадкова шкода, отримана під час перестрілки двох сторін, невинною жертвою не розраховується як FreeDamage.<br>
+                    <span class="punishment">[ BAN 10mi-20mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.24 – FreeKill (FK)</strong> – вбивство без раціональної РП-причини.<br>
+                    <strong>Додаток: AKR (Accidentally Killing Rule)</strong> – Випадкове вбивство, під час рейду не розраховується як FreeKill.<br>
+                    <strong>Доповнення:</strong> Образа і Помста не є причиною для вбивства.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.25 – TeamKill (TK)</strong> – держслужбовцям, військовим заборонено вбивати своїх колег.<br>
+                    <strong>Виключення:</strong> Загрозлива та неадекватна поведінка.<br>
+                    <strong>Наприклад:</strong> Поліцейский звільняє правопорушників з в’язниці та відмовляється коментувати свої дії іншим співробітникам держ. служб.<br>
+                    <span class="punishment">[ BAN 20mi-45mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.26 – RDM</strong> – вбивство від 2 до 4 гравців без раціональної РП-причини.<br>
+                    <span class="punishment">[ BAN 2h-3d ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.27 – MassRDM / MassTeamKill (MRDM/MTK)</strong> – вбивство 4 і більше гравців без раціональної РП-причини.<br>
+                    <span class="punishment">[ BAN 4d-14d ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.28 – SpawnKill (SK)</strong> – заборонено вбивство гравців на місці їхньої спавн зони.<br>
+                    <span class="punishment">[ BAN 1d + Freekill / RDM / MRDM / MTK ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.29 – KillZone (KZ)</strong> – Заборонено створювати зону для вбивств або вбивати гравців на своїй території без попередження.<br>
+                    <strong>Виняток:</strong> Рейд, Захоплення/утримання кланової точки, Війна.<br>
+                    <strong>Доповнення:</strong> Скріни територій, на яких дозволено вбивати без попередження: <a href="https://docs.google.com/document/d/1RDz43WEWWqIup7vgJc4koIkScrvr6HGK-T5HhcAVWSc/edit?usp=sharing" class="text-blue-400 hover:underline">Скріншоти точок</a>.<br>
+                    <strong>Уточнення:</strong> На захопленій точці без попередження дозволено відкривати вогонь лише по кримінальним угрупуванням від 3 осіб.<br>
+                    <strong>Додаток:</strong> Заборонено ставити TextScreen на кшталт: Підійдеш - помреш, Перейдеш межу - смерть.<br>
+                    <span class="punishment">[ BAN 15mi-30mi + Freekill / RDM / MRDM ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.30 – SpawnDamage (SD)</strong> – Заборонено стрілятися, шокерити тощо на території спавна.<br>
+                    <span class="punishment">[ BAN 10-20mi ]</span></p>
+                </div>
+
+                <h3>Інше</h3>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.31 – Leave</strong> – заборонено виходити з сервера під час рп ситуації або під час скарги.<br>
+                    <strong>Додаток:</strong> Якщо у вас були певні проблеми, через які вам потрібно було вийти або у вас були технічні проблеми з грою - у вас є 10 хвилин щоб зайти на сервер.<br>
+                    <span class="punishment">[ BAN 3d </span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.32 – SpawnAbuse (SA)</strong> – заборонено використання спавн зони в корисних цілях та/або уникнення RP ситуації.<br>
+                    <strong>Наприклад:</strong> Втеча від поліцейського.<br>
+                    <span class="punishment">[ BAN 15mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.33 – RevAbuse</strong> – Заборонено проводити революції. <br><span class="punishment">[ BAN 30mi-1d ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.34 – RaidAbuse</strong> – Порушення правил рейду.<br>Правила рейду: <br>
+                    ➤ Для рейду потрібна адекватна рп причина;<br>
+                    ➤ Рейд мерії, відділення поліції, військової частини заборонений, якщо кількість нападників менше п’яти, держслужбовців/військових менше ніж 6;<br>
+                    ➤ Рейд може об’явити тільки мафія раз в 25 хвилин;<br>
+                    ➤ Під час рейду кунаї, набір вбивці, аматерасу, зошит смерті заборонені.<br>
+                    ➤ Забороняється рейд мерії, відділення поліції, військової частини без проголошення в /ad.<br>
+                    <span class="punishment">[ BAN 20mi-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.35 – RuleAbuse</strong> – Заборонено використання недоліків правил/вигадування своїх правил.<br>
+                    <strong>Додаток:</strong> <br>
+                    ➤ Якщо ви не впевнені в чомусь, краще запитайте Старшої набірної адміністрації.<br>
+                    ➤ Заборонено використовувати лазівки у правилах. (у разі знахідки повідомити вищу адміністрацію) <br>
+                    <span class="punishment">[ BAN 2d-7d ]</span></p>
+                </div>
+                
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.36 – HandcuffAbuse (HA)</strong> – Заборонено розтягувати мотузку кайданів.<br>
+                    <strong>Додаток:</strong> Заборонено підвішувати людей, та чіпляти на ентіті, які беруться Gravity Gun, стосується також любого засобу переміщення по типу набір вбивці/кунай/аматерасу і т.п.<br>
+                    <span class="punishment">[ BAN 5mi-15mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.37 – FunRP</strong> – Порушення багатьох правил серверу, псування РП атмосфери, неадекватна поведінка, використання недоліків правил для псування рп.<br>
+                    <span class="punishment">[BAN 1d-Perma]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.38 – C4 Abuse (C4A)</strong> – Ліміт C4 на рейд бази складає максимум 2 шт. <br>
+                    <strong>Виняток:</strong> якщо в двері будівлі додано 4 та більше гравців - ліміт на C4 збільшується до 4 шт.<br>
+                    <span class="punishment">[ BAN 15-30mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.39 – Media Rule (MR)</strong> – Заборонено використовувати радіо задля псування РП атмосфери, використовувати “сміттєві звуки” <br>
+                    <strong>Наприклад:</strong> Шуми, звуки сирен/тривог, стони, занадто гучну музику тощо. <br><span class="punishment">[ BAN 20-40mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.40 – EmergencyRule</strong> – Заборонено викликати держ.служби/швидку допомогу без причини. <br><span class="punishment">[ BAN 10mi ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.41 – NPC Camping</strong> – Заборонено чекати Лікаря, Метоварщика або Гровера біля NPC з метою вкрасти товар.<br>
+                    <strong>Виняток:</strong> не відноситься до рп затримань або пограбувань. <br><span class="punishment">[ BAN 1h + Повернення грошей за продаж ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.42 – HotSpotRule</strong> – Правила захоплення кланових точок: <br>
+                    ➤ Заборонено використовувати Супер-зброю/наркотики під час захоплення точок. (увесь список донатної зброї ви можете побачити в діскорд каналі <a href="https://discord.com/channels/1025769467466236014/1029988871297040426" class="text-blue-400 hover:underline"><strong>⌊💲⌉│супер-донат)</strong></a>; <br>
+                    ➤ Заборонено використовувати scale/приватні професії окрім Якудзи при Захоплені/захисту/відбиття точок “Гетто” та “Пісок”.<br>
+                    ➤ Заборонено будувати будь-що на точках.<br>
+                    ➤ Мінімальна кількість людей для захоплення точки - 3 кримінальні персони. (Не стосується відбиття/захисту точки) <br>
+                    <strong>Виняток:</strong> якщо ви вже захоплюєте точку і одного або декілька з вас вбито, ви можете продовжувати захоплювати точку в складі 1-2 людей <br>
+                    <span class="punishment">[ BAN 1h-12h ]</span></p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.43 – Gang abuse</strong> – Заборонені логотипи клану із зображенням порно, насильства тощо. <br>Та Заборонено створювати клани з провокуючими назвами(18+ назви/назви які мають ту чи іншу дискримінацію тощо.)<br>
+                    <span class="punishment">[ BAN 1h-12h ]</span></p>
+                </div>
+                
+                <h3>Додаткові правила RolePlay</h3>
+                <p class="highlighted-text">За порушення цих правил - NonRP , FreeKill.</p>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.1.</strong> Заборонено поповнення здоров'я та/або броні під час перестрілки/погоні. Ви маєте відбігти від місця перестрілки за стіну або в іншу кімнату і полікуватися, якщо Вашому життю нічого не загрожує. <br>Заборонено сидіти за укриттям лікуватися і водночас відстрілюватись з цього-ж укриття.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.2.</strong> Ліцензія на носіння зброї прирівнюється до ліцензії на будь-який бізнес.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.3.</strong> Кожен гравець має право на самооборону, якщо по ньому відкрили вогонь або почали бити.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.4.</strong> Професії яким дозволено перебувати в кримінальному угрупованні (не плутайте з кланами!): Глава мафії, мафія, Злодій, Бітмайнер, Метоварник, Найманий вбивця, Кримінальні приватні професії , Охоронець (може тільки охороняти базу). </p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.5.</strong> При заході на територію, на якій проводиться рейд/перестрілка, Вас можуть вбити або заарештувати.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.6.</strong> Заборонено використання вогнепальної зброї/вибухівки під водою.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.7.</strong> Під час погоні за кимось, ви маєте право зробити попереджувальний постріл в небо, землю або відкрити вогонь через 3 секунди після попередження, якщо гравець ігнорує ваші вимоги/наказ.<br>Якщо між вами велика відстань, гравець може вас не почути, вбивство заборонено.<br>
+                    <strong>Доповнення:</strong> Заборонено стріляти по людині, яка вже виконує ваші вимоги.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.8.</strong> Забороняється спамити інтерактивними фразами чату або предметами.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.9.</strong> Заборонено використовувати будь-які анімації під час активного руху вашого персонажа, таких як біг, перестрілка і т.п.</p>
+                </div>
+
+                <div class="rule-item">
+                    <p><strong class="rule-number">2.2.10.</strong> Заборонено без поважної причини знаходитись на військовій частині та провокувати військових.</p>
+                </div>
+            </section>
+            
+			<section id="section_3" class="scroll-mt-20">
+				<h2>3. Класи зброї</h2>
+				<p class="highlighted-text">За порушення цих правил - NonRPGun</p>
+
+				<div class="rule-item">
+					<p><strong>Клас - 1</strong> - Холодна зброя, зброя ближнього бою;</p>
+				</div>
+				<div class="rule-item">
+					<p><strong>Клас - 2</strong> - Пістолети;</p>
+				</div>
+				<div class="rule-item">
+					<p><strong>Клас - 3</strong> - ПК (пістолети-кулемети), дробовики;</p>
+				</div>
+				<div class="rule-item">
+					<p><strong>Клас - 4</strong> - Гвинтівки, карабіни, кулемети, снайперські гвинтівки, С4, Grenade.</p>
+				</div>
+
+				<h3>Правила використання зброї</h3>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">3.1</strong> Глава мафії, Мафія, Охоронець, Найманці, Найманий вбивця, усі держ. працівники та військові мають право носити всі класи зброї.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">3.2</strong> Злодії, Кишенькові злодії, Контрабандисти, Метоварники, Тваринники, Продавці зброї мають право носити усю зброю ОКРІМ 4 класу, але використовувати її тільки для самозахисту.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">3.3</strong> Маньяк, Безхатченко та Мер можуть використовувати лише холодну зброю.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">3.4</strong> Усі решту мають право носити лише 1 та 2 класи зброї, і використовувати їх виключно для самооборони.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">3.5</strong> S.L.A.M є зброєю для оборони своєї будівлі, тож її заборонено використовувати в людних місцях.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">3.6</strong> S.L.A.M мають право використовувати будь які професії окрім Безхатька, Маньяк, Бізнесмен, військові та державні професії.</p>
+				</div>
+
+				<p><strong>Додаток:</strong></p>
+				<div class="rule-item">
+					<p>➤ Кунай класифікується як холодна зброя.</p>
+				</div>
+				<div class="rule-item">
+					<p>➤ Маньяк може використовувати кунай, тільки атаками ближнього бою.</p>
+				</div>
+				<div class="rule-item">
+					<p>➤ Набір вбивці - класифікується як холодна зброя. Заборонено чіплятися за небо, за нематеріальні об'єкти, дрони.</p>
+				</div>
+				<div class="rule-item">
+					<p>➤ Шокер (Taser) – не вважається зброєю, його можуть носити всі, але професії, що не відносяться до силових Держ. структур, повинні використовувати шокер лише для самозахисту. Виняток: Маньяк може використовувати шокер для відлову жертв у не громадських місцях.</p>
+				</div>
+				<div class="rule-item">
+					<p>➤ StunStick – вважається холодною зброєю, тож за її носіння у відкритому вигляді вас можуть арештувати.</p>
+				</div>
+			</section>
+
+			<section id="section_4" class="scroll-mt-20">
+				<h2>4. Правила будівництва</h2>
+				<h3>Construction Rules A – Загальні правила будівництва:</h3>
+				<p class="highlighted-text">За порушення Construction Rules “А” BAN 10-20mi</p>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">A.1</strong> Усі будівлі які ви будуєте мають підкорятися всім законам фізики з реального життя.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.2</strong> Заборонено ставити об'єкти у повітрі. (Пропи, TextScreen, Камера тощо).</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.3</strong> Заборонено будувати у місцях загального користування (дорога, парковка, тротуар тощо) та над ними.<br>Виняток: Бізнесмен може будувати на парковці та прикрашати окремі ділянки дороги НЕ перекриваючи її. Безхатченку допускаються невеликі будівлі на тротуарах, парковці, парку. Воєнні та поліція можуть ставити блок пости.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">A.4</strong> На території Мерії та Відділення Поліції можуть будувати лише: меру, начальнику поліції, СБУ та приватним гос. професіями, які знаходяться по ієрархії на одному рівні з СБУ.<br>Решта співробітників правоохоронних органів можуть будувати на цих територіях лише з дозволу мера (якщо це мерія) або з дозволу начальника поліції (якщо це Відділення Поліції).<br><strong>Додаток:</strong> Територія Відділення Поліції/мерії:</p>
+                    <img src="https://thumbs2.imgbox.com/82/c3/8tUXcd30_t.png" alt="Карта забудови поліції та мерії" class="prose-img mx-auto"> 
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.5</strong> На території військової частини мають право будувати тільки військові (територія військової частини до паркану).<br>Доповнення: Заборонено будувати біля військової частини всім окрім військових ближче ніж показано нижче на скріншоті:</p>
+                    <img src="https://thumbs2.imgbox.com/b2/f1/nnzBMIp1_t.png" alt="Карта забудови військової частини" class="prose-img mx-auto"> 
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.6</strong> Заборонено будувати, а також ставити камери на чужій території без згоди її власника.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.7</strong> Заборонено будівництво на дахах та над ними.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.8</strong> Заборонено блокувати ігрові атрибути, такі як NPC/інтерактивні, об’єкти на території казино.<br><strong>Додаток:</strong> Відстань від ваших пропів до NPC має бути не меншим за розмір пропу plate 1х2. (Скріншот нижче)</p>
+                    <img src="https://thumbs2.imgbox.com/c2/b1/JxfojyXj_t.png" alt="plate 1х2" class="prose-img mx-auto">
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">A.9 – PropBlock</strong> – Заборонено блокувати проходи пропами.<br><strong>Додаток:</strong> Як мінімум один вхід всередину приміщення/кімнати/будівлі тощо повинен залишатися доступним для злому.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.10 – PropSpam</strong> – Заборонено спавн пропів у великих кількостях за невеликий проміжок часу.<br><strong>Додаток:</strong> Використання advdupe2, stacker з метою спаму пропами також заборонено.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.11 – PropClimb/PropSurf</strong> – Заборонено використовувати пропи/ентіті для будівництва тимчасових сходів, РП драбин для переміщення по мапі.<br>Виняток: 7.11 та 8.4</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.12 – PropKill/PropPush</strong> – Заборонено використовувати пропи для вбивства або поштовху гравця.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.13 – TextScreenAbuse</strong> – Ставити TextScreen можна тільки на своєму будинку/будівництві або на спеціальних рекламних вивісках, розташованих по мапі.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.14 – SymbolicAbuse</strong> – Заборонено використовувати символіку фашистів/nazi тощо.<br><span class="punishment">[ BAN 30mi-1d ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.15 – CameraBlock(CB)</strong> — Забороняється закривати чужу камеру пропами та іншими ігровими атрибутами. Також заборонено ховати свою камеру всередині пропа, та використовувати на камері прозорі матеріали.<br>Виняток: дозволено ховати камери в полі пропи при наявності доступу до них за допомогою кейпадів.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.16 – NSFWAbuse</strong> – Заборонено будувати статеві органи. Заборонені картини з NSFW-контентом (еротика, насильство тощо)</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.17 – FD Abuse</strong> – заборонено використовувати кнопку ФД для зупинення взлому.<br><strong>Додаток:</strong> Правила для використання FD (Fading Door):<br>➤ Інтервал між відкриттям та закриттям FD під час перестрілки 5 секунд.<br>➤ Кейпад повинен бути з обох сторін FD.<br>➤ Додавання КЕЙПАДА/ФД під час рейда/перестрілки заборонено.<br>➤ Якщо під час рейда/перестрілки Ваш ФД був зламаний/вибитий, то його заборонено закривати до того моменту, поки поруч з вашим приміщенням не закінчаться нападаючі.<br>➤ Заборонено блокувати людей в FD.<br>➤ На одну будівлю дозволено робити максимум 6 FD. В них не входить FD від коробок, полиць для зберігання чого-небудь.<br>➤ Заборонено використовувати прозорий матеріал на FD.<br>➤ Двері (Fading Door) повинні складатися з одного пропа.<br>➤ Інтервал між FD та проходом повинен складати відстань рівну до пропа plate 1х2 (скріншот нижче)<br>➤ Заборонено зачиняти FD під час погоні/переслідування тощо.</p>
+                    <img src="https://thumbs2.imgbox.com/c2/b1/JxfojyXj_t.png" alt="plate 1х2" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.18</strong> Ви можете оголосити нейтральну територію своєю та побудувати на ній будинок, якщо вона не є територією загального користування і не буде нікому заважати.<br>Додаток: Заборонено оголошувати більшу частину пустелі/зеленої зони біля спавну своєю.<br>Виняток: Бізнесмен може зайняти ½ пустелі.<br><strong>Додаток:</strong> Заборонено оголошувати нейтральну територію та не забудовувати її, як мінімум ½ вашої території має бути забудована.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.19</strong> При будівництві чогось намагайтеся використовувати якнайменше пропов. Замість кількох маленьких використовуйте один великий.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.20</strong> Робити пропи NoCollision (через який можна пройти наскрізь) заборонено.<br>Виняток: вода для басейну, ванної тощо.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.21</strong> Заборонені підводні споруди, а також підводні проходи.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.22</strong> Заборонено заставляти двері пропами, таким чином, що її можливо відкрити лише з певного кута або одвірка дверей.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.23</strong> Заборонено перекривати вулиці та райони пропами та FD.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.24</strong> Загально дозволена площа будівництва – 5 пропів plate5x5.<br>Виняток: Бізнесмен.</p>
+                    <img src="https://thumbs2.imgbox.com/11/85/EOk9OLs6_t.png" alt="plate 5х5" class="prose-img mx-auto">					
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.25</strong> Загально дозволена висота будівництва – 2 пропи fence03a<br>Виняток: Бізнесмен.</p>
+                    <img src="https://thumbs2.imgbox.com/c0/b6/1IJ6IgU3_t.png" alt="fence03a" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.26</strong> Заборонено використовувати прозорий матеріал для стін тощо.<br>Виняток: вікна, балкони, відстріли, імітація води.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.27</strong> Заборонено оголошувати більшу частину підземної частини мапи своєю.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.28</strong> Заборонено ставити/видаляти/переміщати пропи під час рейду/перестрілки.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.29</strong> Заборонено використовувати матеріал на сітчастих пропах.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">А.30</strong> Заборонено забудовувати Торговий Центр під свою базу.</p>
+
+				<h3>Construction Rules B – Правила будівництва баз:</h3>
+				<p class="highlighted-text">За порушення Construction Rules “B” BAN 15-35mi</p>
+				<p>База - це передбачена мапою будівля/квартира тощо, яку гравець побудував за допомогою пропів під свої потреби.<br>Штучно створена база - це постройка яку гравець побудував за допомогою пропів та використовує її для тимчасового/постійного перебування.</p>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">В.1</strong> Ширина проходу повинна бути не менше, ніж проп plate075x105<br>Виняток: особливості ігрової мапи</p>
+                    <img src="https://thumbs2.imgbox.com/da/a3/G3AFiPfH_t.png" alt="plate075x105" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">В.2</strong> Довжина коридору не повинна бути більше, ніж проп fence03a</p>
+                    <img src="https://thumbs2.imgbox.com/68/be/9NbIe2lx_t.png" alt="plate075x105" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.3</strong> Довжина між FD та дверима повинна бути не менше, ніж проп plate1x2</p>
+                    <img src="https://thumbs2.imgbox.com/91/f5/N71IYQb2_t.png" alt="plate075x105" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.4</strong> Заборонено будувати коридори з сітчастих пропів.<br>Наприклад: fence03a тощо</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.5</strong> Початком проходу вважається місце, в якому переміщення гравця у довільному напрямку стає обмеженим. Закінченням проходу вважається місце, в якому гравець знову отримує свободу пересування у довільному напрямку.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.6</strong> Заборонено штучне збільшення довжини проходу за допомогою поділу його на складові.<br>Наприклад: лабіринти тощо.<br>Виняток: Бізнесмен.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.7</strong> Забороняється створювати проходи, в яких можна пересуватися тільки сидячи, а також створювати штучні перешкоди, що вимагають перестрибування та пересування по них і крізь них, створювати слизькі поверхні.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.8</strong> Заборонено робити будівлі, в яких людина втрачає орієнтацію.<br>Виняток: Бізнесмен.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">В.9</strong> Мінімальний розмір щілини для прострілу – проп cube05x1x025<br><strong>Додаток:</strong><br>➤ Щілини для прострілу повинні бути такими, щоб зберігалась рівна видимість ігрових моделей гравців. Тобто якщо ваша ігрова модель менша за стандартну – ваші щілини для прострілу повинні бути такими, щоб з протилежної сторони було видно 1/3 вашого тіла.<br>➤ Заборонено робити позиції для відстрілу з нерівною видимістю. Тобто ставити конструкції для відстрілу/будувати базу таким чином, що гравець, який вас рейдить бачить вас погано/зовсім не бачить, в той час, як сторона оборони має кращу видимість моделі гравця.</p>
+                    <img src="https://thumbs2.imgbox.com/1d/50/TVdJ2Pau_t.png" alt="plate075x105" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.10</strong> Заборонено будувати бійниці<br><strong>Додаток:</strong> Бійниця – споруда, яка дозволяє гравцю за короткий проміжок часу опинитися поза перешкодою, вести вогонь та швидко опинитися за перешкодою.</p>
+                    <img src="https://thumbs2.imgbox.com/78/53/YLlSBxsW_t.png" alt="plate075x105" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.11</strong> Заборонено робити простріли зверху, навіть якщо такі передбачені мапою.<br>Приклади:
+					<br>Простріли зверху, передбачені мапою:
+				    <img src="https://thumbs2.imgbox.com/d4/15/oxEfGj9v_t.png" alt="plate075x105" class="prose-img mx-auto">	
+					<br>Штучні простріли зверху:</p>
+                    <img src="https://thumbs2.imgbox.com/e0/cd/rILc1SZR_t.png" alt="plate075x105" class="prose-img mx-auto">				
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.12</strong> Заборонено робити підлоги, сходи, люки, платформи, спуски та інше з FD (крім виходу на дах/горище/підвал).</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.13</strong> Заборонено робити лабірінти/пастки/коридори смерті тощо.<br><strong>Додаток:</strong> Бізнесмену дозволено робити лабіринти.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.14</strong> Заборонено будувати базу з пропів/ентіті, що погано руйнуються С4. Також заборонено ставити декілька рядів пропів/декілька пропів в одному, для запобігання руйнувань С4.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">В.15</strong> На одну людину на базі дозволяється 2 штучно створені позиції для відстрілу. Ліміт штучних позицій для відстрілу – 6 споруд.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">В.16</strong> На один коридор дозволено лише 2 FD. На одну кімнату також можливо застосувати лише 2 FD.<br>Виняток: конструкції для зберігання клікерів, клітки для полонених тощо.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.17</strong> Забороняється створення штучних конструкцій для зловживання механіками рикошету.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.18 – KeyPadHiding</strong> – Заборонено ховати кнопки або кейпади, вони повинні бути на рівні очей з лицьової сторони конструкції біля Fading Door’у.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.19</strong> Заборонено штучно збільшувати територію своєї бази.<br>Виключення: правило B.20.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.20</strong> Заборонено захоплювати під свою базу територію більше двох будівель в елітному районі. А також понад двох квартир в одному будинку.<br><strong>Додаток:</strong> Заборонено робити проходи з однієї квартири на іншу через зовнішню частину будинку.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">B.21</strong> Заборонено використовувати пропи, які непрозорі лише з однієї сторони.<br><strong>Додаток:</strong> Заборонено використовувати матеріал, який робить проп більш прозорим з однієї зі сторін.</p>
+				</div>
+			</section>
+
+			<section id="section_5" class="scroll-mt-20">
+				<h2>5. Правила голосового/текстового чату</h2>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.1</strong> Заборонено знущатися над гравцями серверу з Non-RP метою.<br><span class="punishment">[ BAN 1D ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.2</strong> Заборонені погрози розправою/фізичним або моральним насиллям у бік гравців/адміністрації/проекту сервера.<br><span class="punishment">[ BAN 3D/На розгляд вищої адміністрації ]</span><br><strong>Додаток:</strong> Заборонені погрози розправою/фізичним або моральним насиллям у бік рідних гравців та адміністрації.<br><span class="punishment">[ BAN 5D/На розгляд вищої адміністрації ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.3</strong> Заборонені образливі слова в сторону гравців, використання нецензурної лексики(матів)напрямлених на конкретну особу з Non-RP метою.<br><span class="punishment">[ MUTE 1h-BAN 1h ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.4</strong> Заборонено розпалювати міжнаціональну ворожнечу.<br><span class="punishment">[ BAN 7D-Perma ]</span><br><strong>Додаток:</strong> – 200 – Заборонено будь-яка пропаганда РФ, такі викрики як “Z0V”, “Слава Росії”. Також заборонено пропаганду геноциду українського народу та називати гравців “хохлами”.<br><span class="punishment">[ BAN perma ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.5</strong> Заборонений спам/флуд (зокрема флуд у мікрофон музикою, сміттєвими звуками тощо).<br><span class="punishment">[ MUTE 10mi ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.6</strong> Заборонено змінювати свій голос за допомогою сторонніх програм або через апаратне забезпечення, включаючи звукові карти, що дозволяють модифікацію голосу/використовувати SoundPad.<br>Виняток: Дозволено вмикати сторонні звуки або музику інвентологу тільки для проведення івенту.<br><span class="punishment">[ MUTE 15mi ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.7</strong> Забороняється робити провокуючі нікнейми та клан теги, та нікнейми в яких використовуються нецензурна лексика.<br><strong>Додаток:</strong> Також заборонено використовувати нікнейми, які принижують національності (Н-д: Негр, Жид і т.д.)<br><span class="punishment">[ ЗМІНА НІКНЕЙМУ - BAN 2h ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.8</strong> Заборонена образа сервера в будь-якій формі.<br><span class="punishment">[ Ban 5d - 1mo ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">5.9</strong> Заборонено в образливій формі в RP та NonRP цілях згадувати рідних.<br><span class="punishment">[ BAN 7d ]</span><br>Доповнення: Заборонено у NonRP цілях згадувати рідних.<br><span class="punishment">[ MUTE 1h-BAN 1h ]</span></p>
+				</div>
+			</section>
+
+			<section id="section_6" class="scroll-mt-20">
+				<h2>6. Правила криміналу</h2>
+				<p class="highlighted-text">За порушення цих правил - NonRP , FreeKill.</p>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.1</strong> Максимальна сума пограбування на одного кримінала 5000$.<br><strong>Додаток:</strong> Під час пограбування ви можете отримати тільки 5000$ на одного озброєного грабіжника за одну пограбовану людину. (Максимальна сума пограбування - 25000$).</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.2</strong> Забороняється вбивати поліцію та військових без причини.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.3</strong> Захоплювати мера можна тільки від 3 чоловік в банді, та 3 держслужбовців на посаді.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.4</strong> При викраденні заручника, максимальна сума викупу - 50.000$. <strong>Додаток:</strong> За мера дозволяється брати до - 150.000$.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.5</strong> Ви можете кришувати чийсь бізнес, але вам забороняється охороняти його. Забороняється охороняти або кришувати мера.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.6</strong> Дозволяється вбивство при свідках за наступних причин: самооборона, рейд, порятунок знайомого.<br>Доповнення:<br>➤ NPC - це непідкупні свідки, при них не можна діставати зброю, вбивати, грабувати. (Виключення: Наркоман, Скупщик Валюти, Drug Dealer)<br>➤ Знайомий - гравець, який перебуває у вашому синдикаті/гравець який перебуває за професію криміналу, разом з яким ви проводили певні кримінальні RP-дії (Наприклад: пограбування, рейд тощо).<br><strong>Додаток:</strong> Щоб врятувати знайомого, ви обидва маєте грати за кримінальні професії.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.7</strong> КД рейду/пограбування людини/будівлі - 15 хвилин.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.8</strong> Забороняється рейд мерії, якщо з моменту появи нового мера не пройшло 5 хвилин, також якщо новий мер з’явився під час рейду, його забороняється вбивати.<br><span class="punishment">[ BAN SpawnKill ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.9</strong> Зламувати будівлі та квартири дозволяється тільки від 2 членів банди.<br><strong>Додаток:</strong><br>➤ Рейд вважається розпочатим з моменту початку зламу дверей або встановлення С4.<br>➤ Розповсюджується на захист/відбиття точок.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.10</strong> Забороняється захоплювати мерію та просити за неї викуп.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.11</strong> Рейд триває максимум 10 хвилин.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.12</strong> Якщо на початку рейду сторона захисту склала зброю або не чинить вам опір при рейді і відчинила/відчиняє всі двері, то вам заборонено їх вбивати.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.13</strong> Пограбувати банк можливо лише при рейді Мерії.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">6.14</strong> Заборонено одягати маскування при свідках та посеред вулиці. Виключення: Дозволено маскуватись при співкланівцях/інші кримінальні професії</p>
+				</div>
+			</section>
+
+			<section id="section_7" class="scroll-mt-20">
+				<h2>7. Правила держ. службовців</h2>
+				<p class="highlighted-text">За порушення цих правил - NonRP , FreeKill.</p>
+                <img src="https://thumbs2.imgbox.com/1f/0f/1bIxOkgy_t.png" alt="plate075x105" class="prose-img mx-auto">
+				<h3>Правила силових структур</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.1</strong> Для рейду потрібна комендантська година або супровід двох СБУ.<br>Доповнення: Для рейду необхідно 3 Поліцейських, або 2 СБУ.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.2</strong> Обшукувати громадянина можна лише з поважної на це причини, Наприклад: Ви почули постріли, неподалік побачили вбитого громадянина тощо</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.3</strong> Заборонено порушувати правила пункту [7], зсилаючись на чийсь наказ.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.4</strong> При спробі захоплення рецидивіста ви не повинні порушувати правило FearRP/PowerGaming.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.5</strong> СБУ, Детектив, Рейнджер, Сайтама та Титан не можуть бути підкупним.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.6</strong> Ви можете заарештовувати без попередження людей, якщо від початку комендантської години пройшло 90 секунд.<br>Також ви можете заарештувати громадянина якщо він відмовив вам у проханні пройти додому.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.7</strong> СБУ дозволено ставити RP-драбину під час рейду (1 драбина на 3 співробітника)</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.8</strong> Вам заборонено мати куплену будівлю та жити в ній, ви повинні виконувати роль держслужбовця.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.9</strong> Заборонено самовільно просити знести халупи безхатченків.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.10</strong> Громадянин може попросити держслужбовця показати йому значок або паспорт робітника при затриманні або проводимих з вами рп дій. Ви зобов’язанні це зробити.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.11</strong> Маскуючись під професію вам забороняється носити зброю/стріляти.<br>Виняток:<br>➤ Маскування під воєнного, держслужбовця.<br>➤ Кунай/Набір вбивці/Аматерасу для переміщення.<br>➤ Правило 10.7.4.<br>➤ СБУ дозволено діставати зброю для проведення цивільного арешту під маскуванням.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.12</strong> КД рейду/обшуку будівлі - 15 хвилин.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.13</strong> Шинобі та Tails можуть не підчинятися меру та діяти по своїм прихотям.<br><strong>Додаток:</strong> ЧБД може зрадити мера.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.1.14</strong> Заборонено одягати маскування при свідках та посеред вулиці. Виключення: Дозволено маскуватись при співробітниках Держ. Структур.</p>
+				</div>
+
+				<h3>Правила мера</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.1</strong> Мер не може створювати закони що порушують правила серверу та правила здорового глузду.<br>Наприклад: Не можна влаштовувати геноцид, третій рейх, вбивати всіх хто не дома під час комендантської години тощо.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.2</strong> Вартість ліцензії не повинна перевищувати 25000$.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.3</strong> Перебуваючи у заручниках, мер може видавати ордер на обшук.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.4</strong> Мер може оголошувати комендантську годину з інтервалом в 10 хвилин. Відлік починається від закінчення попередньої комендантської години.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.5</strong> Меру забороняється покидати мерію без комендантської години та супроводу 2-х СБУ.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.6</strong> Заборонено легалізувати варіння мету, продажу та вживання наркотиків, клікерів.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.7</strong> Меру заборонено видавати недоторканість.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.2.8</strong> Заборонено балотуватися в мери наступні 5 хвилин після смерті.<br><span class="punishment">[ BAN - NLR ]</span></p>
+				</div>
+
+				<h3>Спільні правила</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.3.1</strong> Зачиняти двері в поліцейському відділенні або в мерію дозволяється тільки під час комендантської години.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.3.2</strong> Виганяти людей з ПУ або з мерії можна лише з поважної причини або під час комендантської години.<br><strong>Додаток:</strong><br>➤ Дозволено виганяти постороніх людей з поліцейського участку, які пройшли 2-ий поріг.<br>➤ Дозволено виганяти постороніх людей, які перебувають близько біля “Банку” міста в мерії.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.3.3</strong> Максимальна сума хабара/штрафу - 25000$.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">7.3.4</strong> Заборонено використання “Костюма Злодюжки”.</p>
+				</div>
+			</section>
+
+			<section id="section_8" class="scroll-mt-20">
+				<h2>8. Правила військових</h2>
+				<p class="highlighted-text">За порушення цих правил - NonRP , FreeKill.</p>
+
+					<div class="image-container">
+						<a href="https://thumbs2.imgbox.com/f4/dd/HQ8yYFbY_t.png" target="_blank">
+							<img src="https://thumbs2.imgbox.com/f4/dd/HQ8yYFbY_t.png" alt="Зони точок інтересів" class="centered-image">
+						</a>
+					</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.1 – WarAbuse</strong> – Порушення правил війни.<br>Правила війни:<br>➤ Для початку війни між військовими та поліцією потрібно щоб було не менше 6 чоловік з кожної сторони.<br>➤ Військові та Держ.службовці мають право проводити військові дії лише у супроводі Івентолога. (При цьому Генерал/Мер має подати скаргу та узгодити причину початку воєнних дій з Івентологом, який буде слідкувати за цим міні-івентом.)<br>➤ Війна може тривати максимум 45 хвилин,<br>➤ Війну можна оголошувати 1 раз в годину.<br>➤ Під час війни кунаї, набір вбивці, аматерасу, зошит смерті заборонені.<br>(Під час війни правило FREEKILL відносно сторін конфлікту - не працює також заборонено використовувати зошит смерті на противників)<br><span class="punishment">[ BAN 2h-1d ]</span></p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.2</strong> Заборонено порушувати правила пункту [8], зсилаючись на наказ вищого по званню.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.3</strong> При спробі захоплення ви не повинні порушувати правило FearRP.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.4</strong> Військовим дозволено ставити RP-драбину під час рейду (1 драбина на 3 воєнних)</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.5</strong> Вам заборонено купувати будівлю та жити в ній, ви повинні виконувати роль військового та жити в казармі.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.6</strong> Військові не мають права перебувати у місті без комендантської години, територія військової бази зазначена у правилі А.5.<br>Закон про перебування військових без комендантського часу карається Non-RP.<br>Виняток:<br>➤ Повернення воєнного до бази з міста після Ком. часу.<br>➤ Правила 8.8, 8.9, 8.16 або 8.20</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.7</strong> Заборонено використання “Костюма Злодюжки”</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.8</strong> Генерал в супроводі 2 Військових має право піти на переговори з Мером без комендантської години. (перед цим зробивши оголошення в /ad)</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.9</strong> Військові мають право ставити блок пости та знаходитись на них у Елітному районі та Гетто зі згоди Меру.<br>Виняток: 8.20</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.10</strong> Війна може закінчитись за однієї з наступних умов:<br>➤ Вбивство Мера/Генерала;<br>➤ Капітуляція однієї зі сторін;<br>➤ Мирні домовленості.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.11</strong> Для початку мирних перемовин Меру/Генералу необхідно висловити свої наміри в /ad та отримати згоду іншої сторони.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.12</strong> Під час мирних перемовин заборонено вбивати/брати в полон Мера/Генерала, або перемовну групу.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.13</strong> Під час мирних перемовин діє режим припинення вогню. За вбивство кого-сь з іншої сторони буде нараховано порушення FreeKill. За вбивство Мера/Генерала буде нараховано максимальний термін покарання FreeKill, а Мера/Генерала буде відроджено.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.14</strong> Якщо мирні перемовини не вдалися, воєнні дії продовжаться лише через 2-3 хвилини по команді відповідного Івентолога в /ad.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.15</strong> Якщо у Генерала та Мера є певна домовленість, то Державні структури можуть заохочувати військових до спільних Рейдів, або допомоги захисту Мерії/ПУ, як і військові можуть заохочувати держслужбовців до відбиття рейдів на Військову базу.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.16</strong> Військові можуть покинути базу у супроводі 2 СБУ з метою допомоги в рейді.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.17</strong> Процес захоплення районів:<br>1. Військові/Поліцейські заходять в район інтересів.<br>2. Сповіщення в /ad про початок захоплення/відбиття району інтересів. 3. Вільний Івентолог оголошує підтвердження початку захоплення району інтересів та засікає 3 хвилини на захоплення.<br>Доповнення: Усі зазначені пункти мають виконуватись чітко за цим планом, інакше ви можете отримати покарання за порушення правилу WarAbuse.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.18</strong> Зона інтересу вважається захопленною, якщо по закінченню часу на ній не залишилось супротивників.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.19</strong> КД на захоплення/відбиття зони інтересу 5 хв.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.20</strong> Військові мають право ставити блок-пости та проводити мобілізацію у захопленому районі інтересу без згоди Мера.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.21</strong> На захоплених зонах інтересу працює “Режим припинення вогню” до оголошення початку відбиття/захоплення. Військовим заборонено відкривати вогонь по Держслужбовцям і навпаки.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.22</strong> На захоплених точках інтересу Військові мають право проводити самостійні Рейди будівель. (2 військових та більше на 1 рейд)<br><strong>Додаток:</strong> КД на рейд будівель на захоплених територіях 5 хв.</p>
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.23</strong> Зони точок інтересів:</p>					
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.23.1</strong> Єлітний район:</p>
+					<img src="https://thumbs2.imgbox.com/15/5e/ulZQS6K9_t.png" alt="plate075x105" class="prose-img mx-auto">					
+				</div>
+
+				<div class="rule-item">
+					<p><strong class="rule-number">8.23.2</strong> Гетто:</p>
+					<img src="https://thumbs2.imgbox.com/3c/ae/QyNZ0Yrv_t.png" alt="plate075x105" class="prose-img mx-auto">
+				</div>
+			</section>
+
+			<section id="section_9" class="scroll-mt-20">
+				<h2>9. Правила професій</h2>
+				<p class="highlighted-text">За порушення цих правил - NonRP , FreeKill.</p>
+
+				<h3>9.1. Найманець, Найманий вбивця.</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.1</strong> Заборонено вбивство без замовлення.<br>Виняток:<br>➤ Самооборона, Вас намагаються заарештувати.<br>➤ Ви знаходитесь в банді за Найманого вбивці (VIP професію).</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.2</strong> Виконувати замовлення дозволяється не більше, ніж при одному свідку. Свідком вбивства вважається гравець, який має можливість побачити вбивцю (ваш нікнейм = ваше обличчя).<br>Доповнення:<br>➤ Замовник та співкланівці за кримінальну професію не є свідками.<br>➤ Виконувати замовлення та усувати свідка можна у довільному порядку (н-р: спочатку вбити свідка, потім – замовленого гравця).<br>➤ Якщо в приміщенні знаходяться кілька цілей і є свідки, дозволено вбити всі цілі не більше, ніж при одному свідку.<br><span class="punishment">[ BAN - ArmedRP ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.3</strong> Під час рекламування своїх послуг якось приховуйте їх. Не можна говорити прямо, що Ви – вбивця.<br><strong>Додаток:</strong> Заборонено бігати вулицею з проханням замовити будь-кого.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.4</strong> Заборонено працювати у змові. Найманець працює один. Виняток: Найманий Вбивця.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.5</strong> Одягайте маскування в не громацьких місцях, без свідків.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.6</strong> Ви не можете підробляти документи держслужбовців.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.7</strong> Після появи мера - заборонено виконувати на нього замовлення протягом 5 хвилин.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.1.8</strong> Заборонено виконувати замовлення вибухівкою.<br>Наприклад: RPG, Grenade, S.L.A.M., C4.</p>
+				</div>
+
+				<h3>9.2. Злодій.</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.2.1</strong> Злодій може поодинці зламувати чужі будівлі. Заборонено зламувати при свідках чи господарях приміщення.<br>Виняток: Злодій, що працює з мафією може зламувати при свідках.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.2.2</strong> Якщо вас побачили під час злому, то вам треба втекти, а не намагатися вбити свідків.<br>Виняток: Злодій, що працює з мафією може спробувати відстрілятися.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.2.3</strong> Ви можете грабувати людей тільки в парі з мафією.</p>
+				</div>
+
+				<h3>9.3. Продавець зброї, контрабандист, лікар, тваринник, наркоділер, радіоведучий та бітмайнер</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.3.1</strong> Заборонено перебувати в угрупованнях. У Вас має бути свій бізнес.<br>Виняток: Контрабандист, наркоділер</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.3.2</strong> Контрабандисту заборонено будувати магазин в громадських місцях, лише підпільну лавку у безлюдному місці.<br>Наприклад: Гетто або підземелля.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.3.3</strong> Продавцю зброї заборонено будувати магазин у підземеллі.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.3.4</strong> Бітмайнер має право співпрацювати з криміналом, але не може грабувати у парі з мафією.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.3.5</strong> Наркодилеру заборонено продавати наркотики в громадських місцях.<br><span class="punishment">[ BAN - ArmedRP ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.3.6</strong> Радіоведучому заборонено рекламувати кримінальний бізнес.</p>
+				</div>
+
+				<h3>9.4. Безхатченко</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.1</strong> Заборонено будувати на дорозі. Допускаються невеликі будівлі на тротуарах, парковці, парку.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.2</strong> Заборонено будувати величезні, гарні будинки. Ви повинні жити в халупах.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.3</strong> Бездомний не може нічого писати в advert, наймати охорону, замовляти вбивство людини, купувати зброю/наркотики тощо. У нього немає на це грошей.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.4</strong> Під час комендантської години Ви маєте право сховатися у своїх угіддях або перебувати у Підземці. Інакше - Вас можуть заарештувати.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.5</strong> Ваші споруди можуть попросити знести правоохоронці з метою очищення вулиць міста, якщо Ви відмовите, то можете опинитися у в'язниці.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.6</strong> Заборонено бути людожером і вбивати заради їжі.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.7</strong> Вам заборонено користуватися вейпом, камерою, радіо.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.8</strong> Заборонено порушувати правила та посилатися на наказ Короля безпритульних.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.9</strong> Тільки Король безпритульних може будувати бомжеград або доручити будувати його бездомним.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.10</strong> Тільки Король безпритульних може купувати Радіо та писати в /ad.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.11</strong> Якщо Король безпритульних збере з собою 4-х безпритульних, вони можуть залізти в якусь будівлю та насмітити там.<br><strong>Додаток:</strong> Дозволяється ставити пропи купок сміття.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.4.12</strong> Заборонено грабувати людей.</p>
+				</div>
+
+				<h3>9.5. Охоронець</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.5.1</strong> Ви можете стати охоронцем будь-якого підприємства, людини, будівлі тощо.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.5.2</strong> При штурмі об'єкта, що охороняється Вами, або спробі арешту, Ви маєте право на вбивство представників правоохоронних органів, мафії тощо.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.5.3</strong> Заборонено охороняти мафію, злодіїв та приватні кримінальні професії (Не відноситься до їх споруд).</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.5.4</strong> Випадки в яких вам дозволено стріляти:<br>➤ Самооборона;<br>➤ Напад на об'єкт/людину, що охороняється вами.<br><strong>Додаток:</strong> У всіх інших випадках у Вас є можливість попередити і вдарити синім кийком.</p>
+				</div>
+
+				<h3>9.6. Бізнесмен</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.6.1</strong> Ви можете будувати великі та високі споруди.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.6.2</strong> Вам дозволено будувати на парковках.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.6.3</strong> Ви можете змінювати свою професію за допомогою команди /job. Наприклад: Круп'є, Діджей, Суддя тощо. в залежності від вашого бізнесу.<br><strong>Додаток:</strong> Заборонено пов’язувати свою професію з Кримінальної або міняти на вже існуючу. Наприклад: Мафія, Злодій, Маніяк, Вбивця, Громадянин тощо.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.6.4</strong> Вам потрібна ліцензія для будь-якого бізнесу, інакше Вас можуть заарештувати.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.6.5</strong> Вам заборонено перебувати в кримінальних угрупованнях.</p>
+				</div>
+
+				<h3>9.7. Банкір</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.7.1</strong> Ви можете легально зберігати мані принтери, якщо у вас є ліцензія.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.7.2</strong> Вам заборонено зберігати виключно мані принтери друзів.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.7.3</strong> Вам заборонено будувати банк у підземеллі.</p>
+				</div>
+
+				<h3>9.8. Паркурист</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.8.1</strong> Вам дозволено стрибати та падати з будь-якої висоти. Це не вважатиметься порушенням правил FearRP та PowerGaming.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.8.2</strong> Заборонено лазити по невидимих ​​текстурах.<br>Наприклад: Край мапи.</p>
+				</div>
+
+				<h3>9.9. Маніяк</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.9.1</strong> Дозволено використовувати тільки холодну зброю та шокер.<br><strong>Додаток:</strong> Кунай кидати заборонено.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.9.2</strong> Забороняється використовувати маскування при свідках, якщо вас побачили, свідків Ви можете вбити або підкупити.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.9.3</strong> Заборонено співпрацювати з будь-ким окрім інших маніяків.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.9.4</strong> Не працює правило FreeKill.</p>
+				</div>
+
+				<h3>9.10. Кишеньковий злодій</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.10.1</strong> Ви маєте право грабувати людей за допомогою SWEP’a у людних місцях, але якщо вас помітили за цією справою – ви зобов’язані втекти.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.10.2</strong> Заборонено співпрацювати з будь-ким окрім інших кишенькових злодіїв.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.10.3</strong> Якщо вас наздогнали та погрожують вогнепальною зброєю – Ви зобов’язані повернути вкрадене.<br><span class="punishment">[ BAN - FearRP ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.10.4</strong> Вам заборонено грабувати людей за допомогою зброї.</p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.10.5</strong> Вам заборонено грабувати на території GreenZone. Також в людних місцях якщо біля вас є держслужбовці, які вас бачать, то вам заборонено грабувати. Також заборонено грабувати безпосередньо держслужбовців, які вас бачать.<br><span class="punishment">[ BAN 20mi-1h ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.10.6</strong> Якщо під час скарги на вас було з’ясовано, що процес пограбування порушував правила серверу, то ви повинні повернути вкрадені кошти.<br><span class="punishment">[ BAN 12h-7d ]+анулювання ігрового балансу на суму пограбування.</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">9.10.7</strong> Заборонено грабувати людину, якщо вона вас безпосередньо бачить.<br><span class="punishment">[ BAN 20mi-1h ]</span></p>
+				</div>
+			</section>
+
+			<section id="section_10" class="scroll-mt-20">
+				<h2>10. Правила приватних професій</h2>
+
+				<h3>10.1. Итачи</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може співпрацювати з держ. структурами для виконання замовлення.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.2. Работоргівець</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Відсутній FreeHandcuff.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Може співпрацювати з держ. структурами та мером/генералом для власної вигоди.</p>
+				</div>
+
+				<h3>10.3. Мадара Учиха</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не може співпрацювати з держ. структурами.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. В професію вмонтована здібність Amaterasu.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.4. Авторитет</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не може співпрацювати з держ. структурами.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.5. Neco Arc</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Має право допомогти поліції у рейді за грошову винагороду. Мінімальна грошова винагорода за допомогу повинна бути не менше ніж 75.000$.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.6. Ассасин</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може грабувати по одинці.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Має право співпрацювати з держ. структурами за грошову винагороду. Мінімальна грошова винагорода за допомогу повинна бути не менше ніж 75.000$.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.7. Детектив</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не може співпрацювати з кріміналом без маскування. Ваша задача розкрити кримінальну діяльність, втершись у довіру до кримінального угрупування. Виконувати кримінальні дії без нагальної необхідності заборонено (напр. угрупування вимагає пограбувати людину для підтвердження ваших намірів у співпраці - у цьому випадку вам дозволено скоїти необхідний злочин).</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Гос. професія.</p>
+				</div>
+
+				<h3>10.8. Шиноби</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Гос. професія.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Може співпрацювати з криміналом для власної вигоди.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. В професію вмонтована здібність Amaterasu.</p>
+				</div>
+
+				<h3>10.9. Киборг</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може бути найнятий мером або генералом за власним бажанням. Заборонено зраджувати мера/генерала, якщо умови співпраці не були порушені.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. В професію вмонтована здібність Amaterasu.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.10. Імп</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило Power Gaming!</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Має право співпрацювати з держ. структурами за грошову винагороду. Мінімальна грошова винагорода за допомогу повинна бути не менше ніж 500.000$</p>
+				</div>
+				<div class="rule-item">
+					<p>3. В професію вмонтована здібність Amaterasu.</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.11. Baby Yoda</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не може співпрацювати з держ. структурами.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.12. Tails</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило Power Gaming!</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Може співпрацювати з криміналом за грошову винагороду. Мінімальна грошова винагорода за допомогу повинна бути не менше ніж 100.000$</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Має право рейдити без комендантської години.</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Державна професія.</p>
+				</div>
+
+				<h3>10.13. Рюк</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Відсутній MetaGaming. Важливо: Дозволено вбити гравця не знаючи його імʼя по рп за допомогою зошита смерті(з раціональної причини), але після цього ви повинні вписати самі себе в зошит смерті(вбити себе). На вас працюють всі правила серверу після вашої смерті(NLR і тп).</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Не працює правило ArmedRP.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Не працює правило Power Gaming!</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Підпорядковується правилам 9.1. Виняток: 9.1.1, 9.1.2, 9.1.6.</p>
+				</div>
+				<div class="rule-item">
+					<p>5. Не може співпрацювати з держ. структурами, а також за допомогою “зошита смерті” виконувати замовлення на вбивство мера, генерала армії.</p>
+				</div>
+				<div class="rule-item">
+					<p>6. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.14. ЧБД</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може рейдити будівлі поодинці.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Має право зрадити мера під час рейду або війни.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Державна професія.</p>
+				</div>
+
+				<h3>10.15. Блудный рыцарь</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило NLR.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Може співпрацювати з держ. структурами для власної вигоди.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.16. Ягамі Лайт</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може співпрацювати з держ. структурами для власної вигоди.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.17. Kamado Tanjiro (ліміт професії 3 слота)</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило ArmedRP, тільки при використанні катани!</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Не може співпрацювати з держ. структурами.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.18. Claus Madson</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило ArmedRP.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Не працює правило FreeHandCuff.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Не працює правило Hostage rule.</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Не може співпрацювати з держ. структурами.</p>
+				</div>
+				<div class="rule-item">
+					<p>5. В професію вмонтована здібність Amaterasu.</p>
+				</div>
+				<div class="rule-item">
+					<p>6. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.19. Рейнджер</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може рейдити будівлі поодинці під час комендантської години.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Державана професія.</p>
+				</div>
+
+				<h3>10.20. Якудза</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. В професію вмонтований Tommy Gun.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Не може співпрацювати з держ. структурами.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.21. Титан</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може рейдити будівлі поодинці.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Не може співпрацювати з криміналом.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Державна професія.</p>
+				</div>
+
+				<h3>10.22. Гром</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило 8.6.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Військова професія.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Не може співпрацювати з криміналом.</p>
+				</div>
+
+				<h3>10.23. Naruto</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. В професію вмонтований Naruto Run.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Не може співпрацювати з держ. структурами.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.24. Immortal</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. PowerGaming від 5-х людей!</p>
+				</div>
+				<div class="rule-item">
+					<p>2. В професію вмонтована здібність Amaterasu.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Може співпрацювати з держ. структурами для власної вигоди.</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Не працює правило ArmedRP.</p>
+				</div>
+				<div class="rule-item">
+					<p>5. Не працює правило MetaGaming.</p>
+				</div>
+				<div class="rule-item">
+					<p>6. Не працює правило NLR.</p>
+				</div>
+				<div class="rule-item">
+					<p>7. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.25. Сайтама</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. В професію вмонтовано Claws.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. У всіх у полі зору автоматично FearRP стає на значенні 1-ї людини.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Може рейдити будівлі поодинці під час комендантської години.</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Державна професія.</p>
+				</div>
+
+				<h3>10.26. Гопник</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило ArmedRP.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Має право носити лише перший клас зброї.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Має право грабувати будь-кого, але якщо бачить Держслужбовця/Військового зобов’язаний втікти.</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.27. Гримджоу</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Не працює правило ArmedRP.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Не працює правило NLR.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.28. Сектант</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. ???</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Має право носити лише перший клас зброї.</p>
+				</div>
+				<div class="rule-item">
+					<p>3. Має право красти людей та вбивати їх ради культу або приносити їх в жертву “Культисту”.</p>
+				</div>
+				<div class="rule-item">
+					<p>4. Кримінальна професія.</p>
+				</div>
+
+				<h3>10.29. Губка боб</h3>
+				<p><strong>Особливості:</strong></p>
+				<div class="rule-item">
+					<p>1. Може стріляти/говорити/строїти під водою.</p>
+				</div>
+				<div class="rule-item">
+					<p>2. Громадянська професія.</p>
+				</div>
+			</section>
+
+			<section id="section_11" class="scroll-mt-20">
+				<h2>11. Правила адміністрації</h2>
+				<p class="highlighted-text">AdminAbuse – Заборонене використання переваг посади Адміністратора для власної або чужої вигоди.</p>
+				<p>За порушення цих правил, донатний адміністратор може отримати такі покарання:</p>
+				<ul>
+					<li>Перше порушення: Донатна догана +BAN 1h.</li>
+					<li>Друге порушення: Зняття з привілегії + Ban 2-7d.</li>
+				</ul>
+				<p>Виключення:</p>
+				<ul>
+					<li>SudoRoot – не отримують BAN за АА, будуть зняті лише після отримання 3-ї догани.</li>
+					<li>ULTIMA – будуть зняті лише після отримання 4-ї догани.</li>
+				</ul>
+
+				<h3>Загальні правила</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">AА-1</strong> Заборонено втручатися в RP процес за професію Адміністратора або знаходитися в Адмін-моді під час РП.<br>Наприклад: Залишати Non-RP зону без невидимості, проводити розбирання в RP зоні.<br><span class="punishment">[ Догана ]</span><br><strong>Додаток:</strong> Заборонено мати куплені двері за професію адміністратора.<br><span class="punishment">[ Усне Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-2</strong> Заборонено видавати собі професію.<br>Виняток:<br>➤ AFK за ліміт професію більше 10 хв;<br>➤ порушення правила FreeDemote;<br>➤ Івент.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AА-3</strong> Заборонено ображати/знижувати гідність гравців.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AА-4</strong> Заборонено перевищувати свої повноваження та використовувати свої привілеї в корисливих цілях.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-5 – FreeDecree</strong> - невірна видача покарання:<br>➤ FreeBan - заборонено банити гравців без причини;<br>➤ Дозволено видавати покарання тільки за мінімальним терміном.<br>Виключення:<br>➤ [A] Адміністратор має право видавати покарання по максимальному терміну (у розумних цілях).<br>➤ [СA] Старший Адміністратор та вище має право видавати покарання не по вказаним терміном (в межах розумного)<br>➤ За багаторазове порушення одного й того ж правила дозволено видати довший бан.<br><span class="punishment">[Попередження/Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AА-6</strong> Заборонені бани з некоректними причинами або неіснуючими правилами "Мас порушення, Заважає, тощо"<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AА-7</strong> Заборонено брати фізганом/заморожувати гравців без ​​причини.<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AА-8</strong> Заборонено взаємодіяти з пропами гравців PhysGun'ом або ToolGun'ом без необхідної на те причини.<br>Виняток: дозволено видалити проп якщо порушено одне з наступних правил: PropBlock, А.2, А.3, А.4, А.5, А.7, А.8, A.20, A.21, A.22, A.23, A.29 правил будівництва.<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-9</strong> Заборонено використання /job, маскуватися та одягати Костюм Злодюжки знаходячись за професію адміністратора або в Адмін-моді за РП професію.<br>Виняток: Outfitter<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АA-10</strong> Забороняється видавати собі та іншим гравцям HP i Armor. Виняток: Для проведення івент заходу.<br><span class="punishment">[ Догана ]</span><br>Виключення: Приватним професіям в яких ліміт Armor більше ніж 150 дозволено видавати собі Armor на spawn зоні.<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АA-11</strong> Забороняється видавати перманентний бан.<br>Уточнення: Перманентний бан - бан який використовується командою ba perma.<br>Виключення: Вища адміністрація.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АA-12</strong> Адміністрація повинна дотримуватися ієрархії, що вказана у Діскорд каналі серверу.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АА-13</strong> Заборонено використовувати spectate в рп професії.<br>Виняток: Помічено порушення правил гравцем в костюмі злодюжки.<br>Виключення: Ввімкнений Admin Mod.<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-14</strong> Заборонено не вислухавши обидві сторони вимагати демонстрацію екрану.<br>Виключення: Специфічні ситуації такі як: MassRDM, 200 тощо.<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-15</strong> Докази на бани від 12 годин та більше мають зберігатися протягом 48-и годин.<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-16</strong> Заборонено “байтити” гравця на порушення правило 200.<br>Наприклад: Просити сказати “Слава Україні”.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-17</strong> Гравець, який подав скаргу має право попросити відкуп у порушника.<br><strong>Додаток:</strong> Адміністратор, що розглядає скаргу має право не давати право на відкуп.<br>Доповнення: Адміністатор, що розглядає скаргу/ситуацію не має права просити відкуп за порушення.<br>Виключення: Заборонено відкупатись за наступні правила: 1.3, 1.4, 1.5, 1.6, 1.7, 1.9, 1.11, 1.12, 1.13, 1.15, 1.16, 1.18, 1.19, 1.20, 1.21, 2.12, 2.26, 2.27, 2.28, 2.29, 2.31, 2.34, 2.35, 2.37, 5.2, 5.4, 5.6, 5.8, 8.1, 9.10.6., правила адміністрації.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-18</strong> Якщо адміністратор несправедливо розглядає скаргу або не розуміє ситуацію, гравець має право попросити розібрати його скаргу/на нього іншого адміністратора.<br><strong>Додаток:</strong><br>➤ Якщо гравець подає скаргу на адміністратора, він може вимагати зміни адміністратора для розгляду скарги лише в тому випадку, якщо на сервері є інший адміністратор такого ж або вищого рангу, який може її розглянути. Якщо немає адміністратора рівного або вищого по рангу, скарга розглядається адміністратором який прийняв скаргу.<br>➤ Гравець може “змінити” адміністратора один раз за скаргу(якщо не порушує ієрархію).<br>➤ Якщо вашу скаргу розглядає Старший адміністратор й вище він може відмовити вам в прохані змінити адміністратора.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+
+				<h3>Правила набірної адміністрації</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">АА-19</strong> Будучи наборним адміністратором на нашому сервері,вам заборонено бути наборним адміністратором на інших серверах.<br><span class="punishment">[ Зняття з привілегії + ЧС Адміністрації]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-20</strong> Заборонено грати в RP професії, якщо адміністрація не справляється зі скаргами. (Скарга не повинна висіти більше 3 хвилин).<br><span class="punishment">[ Відпрацювання/Попередження ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АA-21</strong> Будучи набірним адміністратором, забороняється бути неадекватним, веселитися, заважати ігровому процесу.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АA-22</strong> Забороняється пропускати збори адміністрації без попередження.<br><span class="punishment">[ Догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-23</strong> Забороняється AFK більше 5 хвилин за професію Адміністратора та забороняється AFK більше 10 хвилин в RP професії.<br><span class="punishment">[ Попередження ]</span></p>
+				</div>
+
+				<h3>Правила донатної адміністрації</h3>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-24</strong> Донатна адміністрація не може банити більше ніж на 2 доби.<br>Виключення: SudoRoot можуть банити на термін більше 2 діб.<br><span class="punishment">[ Донатна догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АА-25</strong> Заборонено блокувати знаходячись в РП-професії та не проводячи розбір ситуації.<br>Виключення: Ситуації такі як: MassRDM, FunRP, 200.<br>Виключення: SudoRoot можуть розібрати скаргу в РП-профі увімкнувши адмін-мод та перемістившись у Адмін-зону<br><span class="punishment">[ Донатна догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">АА-26</strong> Заборонено телепортувати адміністратора рівного/вищого за ієрахією без дозволу.<br>Виключення: Дозволено телепортувати адміністратора рівного за ієрархією без дозволу для розбору скарги.<br><span class="punishment">[ Донатна догана ]</span></p>
+				</div>
+				<div class="rule-item">
+					<p><strong class="rule-number">AA-27</strong> Донатним Sudoroot заборонено відмовляти набірному Хелперу або вище банити себе за порушення під час розбору скарги на нього/неї.<br><span class="punishment">[ Донатна догана + продовження сроку бана на 6 годин ]</span></p>
+				</div>
+			</section>
+            
+			<section id="section_12" class="scroll-mt-20">
+				<h2>12. Питання – Відповідь</h2>
+
+				<div class="qa-item">
+					<p><strong class="question">Q:</strong> Чи можуть мене посадити у в’язницю під час комендантської години, якщо я граю за Безхатька?</p>
+					<p><strong class="answer">A:</strong> Так, якщо ви знаходитесь за межами Green Zone/вашого бараку/підземелля.</p>
+				</div>
+
+				<div class="qa-item">
+					<p><strong class="question">Q:</strong> Чи можуть мене заарештувати під час коменданської години, якщо я перебуваю у під’їзді п’ятиповерхівки/двоповерхівки тощо?</p>
+					<p><strong class="answer">A:</strong> Так, бо це є громадським місцем.</p>
+				</div>
+
+				<div class="qa-item">
+					<p><strong class="question">Q:</strong> Чи можу я за поліцію брати хабарі?</p>
+					<p><strong class="answer">A:</strong> Так, але ви повинні приховувати цей факт від громадськості.</p>
+				</div>
+
+				<div class="qa-item">
+					<p><strong class="question">Q:</strong> Чи можу я за маніяка використовувати тайзер для тортур/катувань/відлову жертв?</p>
+					<p><strong class="answer">A:</strong> Так.</p>
+				</div>
+
+				<div class="qa-item">
+					<p><strong class="question">Q:</strong> Чи можу я говорити мертвим чи під водою?</p>
+					<p><strong class="answer">A:</strong> Ні, не можете.</p>
+				</div>
+
+				<div class="qa-item">
+					<p><strong class="question">Q:</strong> Чи можу я забудувати ТЦ під базу?</p>
+					<p><strong class="answer">A:</strong> Ні, не можете. Торговий Центр вважається громадським місцем.</p>
+				</div>
+
+				<div class="qa-item">
+					<p><strong class="question">Q:</strong> Чи можу я займатися кримінальною діяльністю у придбаній квартирі у ТЦ?</p>
+					<p><strong class="answer">A:</strong> Так, але ця квартира повинна бути повністю ізольована від сторонніх поглядів.</p>
+				</div>
+			</section>
+
+            <section id="section_13" class="scroll-mt-20 section-spacing">
+                <h2>Корисні посилання</h2>
+                <ul class="space-y-2">
+                    <li><a href="#" class="text-blue-400 hover:underline flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                        </svg>
+                        Інформація про сервер Ukraine RolePlay</a></li>
+                    <li><a href="#" class="text-blue-400 hover:underline flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+                        </svg>
+                        Правила діскорд серверу</a></li>
+                     <li><a href="#" class="text-blue-400 hover:underline flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                        </svg>
+                        Набір на пост Хелпера 1-го серверу</a></li>
+                    <li><a href="#" class="text-blue-400 hover:underline flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h6m-6 4h6m-6 4h6"></path>
+                        </svg>
+                        Ієрархія адміністрації</a></li>
+                    <li><a href="#" class="text-blue-400 hover:underline flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Скарги на Адміністрацію</a></li>
+                    <li><a href="#" class="text-blue-400 hover:underline flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H5v-2H3v-2H1v-4a6 6 0 017.743-5.743L11 7h2m4 0h2M7 7H5m2 0v2"></path>
+                        </svg>
+                        Розбани</a></li>
+                    <li><a href="#" class="text-blue-400 hover:underline flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                        Придбані донат можливості</a></li>
+                </ul>
+            </section>
+        </article>
+    </div>
+
+    <script>
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const body = document.body;
+
+        function toggleSidebar() {
+            body.classList.toggle('sidebar-open');
+            body.classList.toggle('sidebar-closed');
+        }
+
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', toggleSidebar);
+        }
+        
+        const navLinks = sidebar.querySelectorAll('a.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 768) { 
+                    toggleSidebar();
+                }
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            });
+        });
+
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                if (targetElement) {
+                    const headerOffset = 80; 
+                    const elementPosition = targetElement.getBoundingClientRect().top;
+                    const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+        
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        const sections = document.querySelectorAll('section[id]');
+        function onScroll() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 120) { 
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        window.addEventListener('scroll', onScroll);
+        
+        if (window.innerWidth < 768) { 
+            body.classList.remove('sidebar-open');
+            body.classList.add('sidebar-closed');
+        } else {
+            body.classList.add('sidebar-open');
+            body.classList.remove('sidebar-closed');
+        }
+        
+        window.addEventListener('resize', () => {
+            if (window.innerWidth < 768) {
+                if(body.classList.contains('sidebar-open')) {
+                    body.classList.remove('sidebar-open');
+                    body.classList.add('sidebar-closed');
+                }
+            } else {
+                if(body.classList.contains('sidebar-closed')) {
+                   body.classList.add('sidebar-open');
+                   body.classList.remove('sidebar-closed');
+                }
+            }
+        });
+        if (navLinks.length > 0) {
+            navLinks.forEach(l => l.classList.remove('active'));
+            const activeLinkOnLoad = document.querySelector(`a.nav-link[href="${window.location.hash || '#section_2'}"]`) || document.querySelector('a.nav-link[href="#section_2"]');
+            if(activeLinkOnLoad){
+                activeLinkOnLoad.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
